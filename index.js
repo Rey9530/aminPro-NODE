@@ -6,18 +6,14 @@ const { dbConnect } = require('./database/config');
 
 const app = expres();
 app.use(cors())
+app.use(expres.json())
 
 dbConnect();
-// BVCspNkDHQPvL4Mn
-// rey
-// mongodb+srv://rey:BVCspNkDHQPvL4Mn@cluster0.tjtzp3n.mongodb.net/test
 
-app.get('/',(req,resp)=>{
-    resp.json({
-        ok:true,
-        msg:'todo bien'
-    });
-});
+
+app.use('/api/usuarios', require('./routes/usuarios'));
+app.use('/api/login', require('./routes/auth'));
+
 
 
 app.listen(process.env.PORT,()=>{
