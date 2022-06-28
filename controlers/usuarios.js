@@ -4,11 +4,17 @@ const Usuario = require('../modelos/usuario');
 const { getenerarJWT } = require('../helpers/jwt');
 
 const getUsuario= async (req,resp)=>{
-    const usuario = await Usuario.find({},'nombre email role');
-    const uid = req.uid;
+
+    const deste = Number(req.query.desde) || 0; 
+   const [usuario, total] = await Promise.all([
+        await Usuario.find({},'nombre email role img').skip(deste).limit(5),
+        await Usuario.count()
+    ])
+    
     resp.json({
         ok:true,
-        usuario,uid
+        usuario,
+        total
     });
 }
 
