@@ -43,23 +43,77 @@ const creaMedico= async (req,resp=response)=>{
             ok:false,
             msg:'Hable con el administrador'
         });
-    }
-
-
+    } 
 
 }
 
 const actualizarMedico= async (req,resp=response)=>{ 
-    resp.json({
-        ok:true,
-        msg:'actualizarMedico'
-    });
+    const usuario = req.uid;
+    const tk_hospital = req.body.tk_hospital;
+    const id = req.params.id;
+
+    try {
+        const medicodb = await Medico.findById(id) ;
+        if(!medicodb){ 
+            return resp.status(404).json({
+                ok:false,
+                msg:'Medico invalido'
+            });
+        }
+        const hospital = await Hospital.findById(tk_hospital) ;
+        if(!hospital){ 
+            return resp.status(500).json({
+                ok:false,
+                msg:'hospital invalido'
+            });
+        }
+
+        delete req.body.tk_hospital;
+        
+        const cambios = {
+            ...req.body,usuario
+        }
+        const medico = await Medico.findByIdAndUpdate(id, cambios, {new:true} ); 
+        resp.json({
+            ok:true,
+            medico
+        });
+        
+    } catch (error) { 
+        console.log(error)
+        resp.status(500).json({
+            ok:false,
+            msg:'Hable con el administrador'
+        });
+    } 
 }
 const eliminarMedico= async (req,resp=response)=>{ 
-    resp.json({
-        ok:true,
-        msg:'eliminarMedico'
-    });
+    const id = req.params.id;
+    const usuario = req.uid
+    try {
+
+        const data = await Medico.findById(id) 
+        if(!data){
+            return resp.status(404).json({
+                ok:false,
+                msg:'Datos no encontrados'
+            });
+        }
+        
+        await Medico.findByIdAndDelete(id);
+
+        
+        resp.json({
+            ok:true,msg:'Medico Eliminado' 
+        });
+        
+    } catch (error) {
+        console.log(error)
+        resp.status(500).json({
+            ok:false,
+            msg:'Hable con el administrador'
+        });
+    }
 }
 
 module.exports = {

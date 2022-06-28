@@ -81,10 +81,18 @@ const loginGoogle= async (req=request,resp=response)=>{
             ok:false,
             msg:'El token no es valido'
         });
-    }
+    } 
+}
 
+const loginRenew= async (req=request,resp=response)=>{
+     
+    const token = await getenerarJWT(req.uid);
+    resp.json({
+        ok:true,
+        token
+    });
 }
 
 module.exports = {
-    login,loginGoogle
+    login,loginGoogle,loginRenew
 }
