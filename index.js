@@ -6,6 +6,7 @@ const { dbConnect } = require('./database/config');
 
 const app = expres();
 app.use(cors())
+app.use(expres.static('public'))
 app.use(expres.json())
 
 dbConnect();
