@@ -86,9 +86,13 @@ const loginGoogle= async (req=request,resp=response)=>{
 
 const loginRenew= async (req=request,resp=response)=>{
      
-    const token = await getenerarJWT(req.uid);
+    const token = await getenerarJWT( req.uid );
+
+    const usuario = await Usuario.findById(req.uid);
+
     resp.json({
         ok:true,
+        usuario,
         token
     });
 }
