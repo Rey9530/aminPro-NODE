@@ -19,7 +19,7 @@ const getUsuario= async (req,resp)=>{
 }
 
 const crearUsuario= async (req,resp=response)=>{
-    let {usuario, password} = req.body;
+    let {usuario, password,nombre} = req.body;
     try {  
         const existeEmail = await prisma.usuarios.findUnique({
             where:{
@@ -39,7 +39,7 @@ const crearUsuario= async (req,resp=response)=>{
         const userSaved = await prisma.usuarios.create(
             {
                 data:{
-                    usuario, password
+                    usuario, password,nombre
                 }
             }
         );
@@ -74,7 +74,7 @@ const actualizarUsuario = async (req=request,resp=response)=>{
             });
         }
  
-        const { usuario, ...campos } = req.body;
+        const { usuario, nombre,...campos } = req.body;
         if(existeEmail.usuario!=usuario){ 
             const existeEmail = await prisma.usuarios.findUnique({ where:{ usuario } });  
             if(existeEmail){
@@ -86,7 +86,7 @@ const actualizarUsuario = async (req=request,resp=response)=>{
         } 
         const usuarioUpdate = await prisma.usuarios.update({
             where:{ id:uid },
-            data:{  usuario  }
+            data:{  usuario,nombre  }
         });
         resp.json({
             ok:true,

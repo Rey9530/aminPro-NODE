@@ -10,7 +10,8 @@ const router = Router();
 router.get('/',getUsuario);
 router.post('/',
     [
-        check('usuario','El nombre es obligatorio').not().isEmpty(),
+        check('usuario','El usuario es obligatorio').not().isEmpty(),
+        check('nombre','El nombre es obligatorio').not().isEmpty(),
         check('password','El password es obligatorio').not().isEmpty(),
         // check('email','El email es obligatorio').isEmail(),
         validarCampos,
@@ -19,7 +20,8 @@ router.post('/',
 router.put('/:id',
     [
         validarJWT,
-        check('usuario','El nombre es obligatorio').not().isEmpty(),
+        check('usuario','El usuario es obligatorio').not().isEmpty(),
+        check('nombre','El nombre es obligatorio').not().isEmpty(),
         validarCampos,
     ]
 ,actualizarUsuario);

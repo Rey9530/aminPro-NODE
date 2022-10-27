@@ -12,6 +12,7 @@ datasource db {
 
 model usuarios {
   id        Int       @id @default(autoincrement())
+  nombre    String    @unique
   usuario   String    @unique
   password  String    
   foto      String?   @unique
