@@ -1,22 +1,28 @@
 const { response, request } = require('express'); 
 const bcrypt = require('bcryptjs');
-const Usuario = require('../modelos/usuario');
+// const Usuario = require('../modelos/usuario');
 const { getenerarJWT } = require('../helpers/jwt');
-const { googlewVerify } = require('../helpers/google-verify');
+// const { googlewVerify } = require('../helpers/google-verify');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 
 
 const login= async (req=request,resp=response)=>{
 
-    const { email, password } = req.body;    
+    const { usuario, password } = req.body;    
     try { 
 
-        const usaurioDB = await Usuario.findOne({email});
+        const usaurioDB = await prisma.usuarios.findUnique({
+            where:{
+                usuario
+            }
+        });  
         
         if(!usaurioDB){
             return resp.status(400).json({
                 ok:false,
-                msg:'El email o clave no existe'
+                msg:'El usuario o clave no existe'
             });
         } 
         const validarPass = bcrypt.compareSync(password, usaurioDB.password);
@@ -34,7 +40,7 @@ const login= async (req=request,resp=response)=>{
 
         resp.json({
             ok:true,
-            usuario:'Hola mundoi logiun dd',token
+            data:{ ...usaurioDB, token }, 
         });
     } catch (error) {
         console.log(error);
@@ -46,57 +52,61 @@ const login= async (req=request,resp=response)=>{
 }
 
 
-const loginGoogle= async (req=request,resp=response)=>{
-    const tokenGoogle = req.body.token;
+// const loginGoogle= async (req=request,resp=response)=>{
+//     const tokenGoogle = req.body.token;
 
-    try {
+//     try {
         
-        const { email, name, picture } = await googlewVerify(tokenGoogle);
+//         const { email, name, picture } = await googlewVerify(tokenGoogle);
 
-        const usuariodb = await Usuario.findOne({ email });
-        let usuario;
-        if(!usuariodb){
-            usuario = new Usuario({
-                nombre:name,
-                email,
-                password:'@@@',
-                img:picture,
-                google:true
-            });
-        }else{
-            usuario = usuariodb;
-            usuario.google = true;
-            usuario.password = "@@@";
-        }
-        await usuario.save();
+//         const usuariodb = await Usuario.findOne({ email });
+//         let usuario;
+//         if(!usuariodb){
+//             usuario = new Usuario({
+//                 nombre:name,
+//                 email,
+//                 password:'@@@',
+//                 img:picture,
+//                 google:true
+//             });
+//         }else{
+//             usuario = usuariodb;
+//             usuario.google = true;
+//             usuario.password = "@@@";
+//         }
+//         await usuario.save();
         
-        const token = await getenerarJWT(usuario.id);
-        resp.json({
-            ok:true, email, name, picture,
-            token
-        });
-    } catch (error) {
-        console.log(error)
-        resp.status(400).json({
-            ok:false,
-            msg:'El token no es valido'
-        });
-    } 
-}
+//         const token = await getenerarJWT(usuario.id);
+//         resp.json({
+//             ok:true, email, name, picture,
+//             token
+//         });
+//     } catch (error) {
+//         console.log(error)
+//         resp.status(400).json({
+//             ok:false,
+//             msg:'El token no es valido'
+//         });
+//     } 
+// }
 
 const loginRenew= async (req=request,resp=response)=>{
      
     const token = await getenerarJWT( req.uid );
+ 
 
-    const usuario = await Usuario.findById(req.uid);
+    const usaurioDB = await prisma.usuarios.findUnique({
+        where:{
+            id:Number(req.uid)
+        }
+    }); 
 
     resp.json({
         ok:true,
-        usuario,
-        token
+        data:{ ...usaurioDB,token }
     });
 }
 
 module.exports = {
-    login,loginGoogle,loginRenew
+    login,loginRenew
 }

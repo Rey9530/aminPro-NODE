@@ -1,55 +1,56 @@
 const { response, request } = require('express');
 const bcrypt = require('bcryptjs');
-const Usuario = require('../modelos/usuario');
 const { getenerarJWT } = require('../helpers/jwt');
+
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+
 
 const getUsuario= async (req,resp)=>{
 
-    const deste = Number(req.query.desde) || 0; 
-   const [usuario, total] = await Promise.all([
-        await Usuario.find({},'nombre email role img google uid').skip(deste).limit(5),
-        await Usuario.count()
-    ])
-    
+    const deste = Number(req.query.desde) || 0;  
+    const usuarios = await prisma.usuarios.findMany();
+    const total = await usuarios.length;
     resp.json({
         ok:true,
-        usuario,
+        usuarios,
         total
     });
 }
 
 const crearUsuario= async (req,resp=response)=>{
-    
-    const {email, nombre, password} = req.body;
-
-
-    try { 
-        const usuario = new Usuario(req.body);
-
-        const existeEmail = await Usuario.findOne({email});
-
+    let {usuario, password} = req.body;
+    try {  
+        const existeEmail = await prisma.usuarios.findUnique({
+            where:{
+                usuario
+            }
+        });  
         if(existeEmail){
             return resp.status(400).json({
                 ok:false,
-                msg:'El correo ya existe'
+                msg:'El  ya existe'
             });
         }
-
-
         //encriptar clave
-
         const salt = bcrypt.genSaltSync();
-        usuario.password = bcrypt.hashSync(password, salt);
+        password = bcrypt.hashSync(password, salt);
 
-        await usuario.save();
-
-        
-        const token = await getenerarJWT(usuario.id);
+        const userSaved = await prisma.usuarios.create(
+            {
+                data:{
+                    usuario, password
+                }
+            }
+        );
+ 
+        const token = await getenerarJWT(userSaved.id);
         
         resp.json({
             ok:true,
             msg:'Crear usuario',
-            usuario,token
+            data:{...userSaved,token},
+            
         });
     } catch (error) {
         console.log(error);
@@ -62,37 +63,31 @@ const crearUsuario= async (req,resp=response)=>{
 }
 const actualizarUsuario = async (req=request,resp=response)=>{
 
-    const uid = req.params.id;
+    let uid = req.params.id;
+    uid = Number(uid);
     try {
-        const existeEmail = await Usuario.findById(uid);
+        const existeEmail = await prisma.usuarios.findUnique({ where:{ id:uid } });  
         if(!existeEmail){
             return resp.status(400).json({
                 ok:false,
                 msg:'El usuario no existe'
             });
         }
-
-        //TODO: validar token
-        const { password, google, email, ...campos } = req.body;
-        if(existeEmail.email!=email){
-            const existeEmail = await Usuario.findOne({email});
+ 
+        const { usuario, ...campos } = req.body;
+        if(existeEmail.usuario!=usuario){ 
+            const existeEmail = await prisma.usuarios.findUnique({ where:{ usuario } });  
             if(existeEmail){
                 return resp.status(400).json({
                     ok:false,
-                    msg:'Ya existe uin usuario con ese email'
+                    msg:'Ya existe un registro con ese usuario'
                 });
             }
-        }
-        if(!existeEmail.google){
-            campos.email = email;
-        }else if(existeEmail.email!==email){
-            return resp.status(500).json({
-                ok:false,
-                msg:"Usuarios de google no pueden cambiar de correo"
-            });
-
-        }
-        const usuarioUpdate = await Usuario.findByIdAndUpdate( uid,campos,{new:true} );
+        } 
+        const usuarioUpdate = await prisma.usuarios.update({
+            where:{ id:uid },
+            data:{  usuario  }
+        });
         resp.json({
             ok:true,
             msg:'Usuario Actualizado',
@@ -108,23 +103,20 @@ const actualizarUsuario = async (req=request,resp=response)=>{
 }
 
 const eliminarUsuarios = async (req, resp=response)=>{
-    const uid = req.params.id;
-
+    
+    let uid = req.params.id;
+    uid = Number(uid);
     try {
+ 
 
-        
-        const existeEmail = await Usuario.findById(uid);
-
+        const existeEmail = await prisma.usuarios.findUnique({ where:{ id:uid } });
         if(!existeEmail){
             return resp.status(400).json({
                 ok:false,
                 msg:'El usuario no existe'
             });
         }
-
-
-        await Usuario.findByIdAndDelete(uid);
-
+        await prisma.usuarios.delete({ where:{ id:uid } }); 
         resp.json({
             ok:true,
             msg:"Usuario elimiando"

@@ -1,10 +1,8 @@
 const { request, response } = require("express");
 const jwt =require('jsonwebtoken');
 
-const validarJWT = (req=request, resp=response, next)=>{
-
+const validarJWT = (req=request, resp=response, next)=>{ 
     const token = req.header('x-token');
-    
     if(!token){
         return resp.status(401).json(
             {
@@ -15,10 +13,8 @@ const validarJWT = (req=request, resp=response, next)=>{
     }
 
     try {
-        
         const { uid } = jwt.verify(token, process.env.JWT_SECRET);
         req.uid = uid;
-        
         next();
 
     } catch (error) {
