@@ -9,17 +9,17 @@ $ yarn install
 ```
 
 ##  Levantar una imagen de base de datos de mysql
-´´´bash
+```bash
 $ docker-compose up -d 
-´´´
+```
 
 ## Ejecutar las migraciones
-´´´bash
+```bash
 $ npx prisma migrate dev --name init  
-´´´
+```
 
 
 ## Correr la aplicacion
-´´´bash
+```bash
 $ yarn start:dev
-´´´
+```
