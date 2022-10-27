@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 const execute = async () => {
     try {
         const salt = bcrypt.genSaltSync();
-        password = bcrypt.hashSync(1234, salt);
+        password = bcrypt.hashSync("1234", salt);
 
         //USUARIO DEMO
         await prisma.usuarios.create({
